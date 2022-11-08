@@ -57,7 +57,7 @@ uint8_t player_x_pos;
 uint8_t second_passed = 0;
 uint8_t game_status = 0;
 uint8_t seconds = 0, minutes = 0, hours = 0;
-uint8_t score = 0;
+uint8_t score = 55;
 uint8_t lives = 3;
 /* USER CODE END PV */
 
@@ -70,6 +70,8 @@ void Move_Left(void);
 void Moive_Right(void);
 void GameSetup(void);
 void Update_Time(void);
+void Update_Score(void);
+void Update_Lives(void);
 int8_t ADC1_Init(void);
 /* USER CODE END PFP */
 
@@ -229,7 +231,6 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 /**
-
   * @brief Toggle Leds
   * @param  None
   * @retval None
@@ -241,10 +242,37 @@ void GameSetup(void)
 	BSP_LCD_DrawVLine(200, 240, 241);
 	BSP_LCD_DrawVLine(201, 240, 241);
     BSP_LCD_DisplayStringAt(75, 20, (uint8_t *)"Time:", CENTER_MODE);
-    BSP_LCD_DisplayStringAt(75, 35, (uint8_t *)"Score:", CENTER_MODE);
-    BSP_LCD_DisplayStringAt(75, 50, (uint8_t *)"Lives:", CENTER_MODE);
+    UpdateScore();
+    UpdateLives();
     Draw_Player_Start_Position();
 }
+
+void UpdateScore(void)
+{
+	uint8_t Result[] = "Score: 00";
+	uint8_t i = 0;
+	while(score != 0)
+	{
+		Result[8-i] = score%10+48;
+		score = score/10;
+		i++;
+	}
+	BSP_LCD_DisplayStringAt(85, 35, (uint8_t *)Result, CENTER_MODE);
+}
+
+void UpdateLives(void)
+{
+	uint8_t LivesResult[] = "Lives: 00";
+	uint8_t i = 0;
+	while(lives != 0)
+	{
+		LivesResult[8-i] = lives%10+48;
+		lives = lives/10;
+		i++;
+	}
+	BSP_LCD_DisplayStringAt(85, 50, (uint8_t *)LivesResult, CENTER_MODE);
+}
+
 void Toggle_Leds(void)
 {
   static uint8_t ticks = 0;
@@ -367,4 +395,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
