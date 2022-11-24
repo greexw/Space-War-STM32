@@ -54,7 +54,7 @@ uint8_t player_height = 30;
 uint8_t player_starting_position = 90;
 uint8_t player_step = 4;
 uint8_t player_x_pos;
-// 0: game is running, 1: game lost, 2: game won
+// 0: game is running, 1: game lost
 uint8_t game_status = 0;
 uint8_t second_passed = 0;
 uint8_t score = 0;
@@ -509,6 +509,32 @@ void Detect_Colision_With_Player(void)
 {
  // kolizja w y - airplane.y+radius>(240-wysokosc gracza)
  // kolizja w x - airplane.x-
+
+	for (uint16_t i =0; i<40; i++)
+	{
+		if (Airplanes[i].x != 0 && Airplanes[i].y != 0)
+		{
+			if(Airplanes[i].y + airplane_radius > 240-player_height)
+			{
+				if(abs(player_x_pos + player_width/2 - Airplanes[i].x) < player_width/2 + airplane_radius)
+				{
+					lives--;
+					if (lives < 0)
+					{
+						game_status = 1;
+					}
+					BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
+					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
+
+					BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+					BSP_LCD_DrawHLine(player_x_pos, 240-player_height, player_width);
+					BSP_LCD_DrawHLine(player_x_pos, 240, player_width);
+					BSP_LCD_DrawVLine(player_x_pos, 240-player_height, player_height);
+					BSP_LCD_DrawVLine(player_x_pos+player_width, 240-player_height, player_height);
+				}
+			}
+		}
+	}
 }
 
 void Draw_Airplane(void)
@@ -610,25 +636,16 @@ void Game_Over(void)
 	uint8_t Result[] = "You score 000 pts.";
 	uint8_t i = 0;
 	BSP_LCD_Clear(LCD_COLOR_LIGHTGRAY);
-	// Game lost
-	if (game_status == 1)
-	{
-	    BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 95, (uint8_t *)"Game lost!", CENTER_MODE);
-	}
-	// Game won
-	if (game_status == 2)
-	{
-		while(score != 0)
-		{
-			Result[12-i] = score%10+48;
-			score = score/10;
-			i++;
-		}
-	    BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 80, (uint8_t *)"Game won! :)", CENTER_MODE);
-	    BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 95, (uint8_t *)Result, CENTER_MODE);
 
+	while(score != 0)
+	{
+		Result[12-i] = score%10+48;
+		score = score/10;
+		i++;
 	}
-    BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 80, (uint8_t *)"Press \"Reset\" to play again.", CENTER_MODE);
+	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 95, (uint8_t *)"Game Over!", CENTER_MODE);
+	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 95, (uint8_t *)Result, CENTER_MODE);
+	BSP_LCD_DisplayStringAt(0, BSP_LCD_GetYSize()- 80, (uint8_t *)"Press \"Reset\" to play again.", CENTER_MODE);
 
 	while(1);
 }
