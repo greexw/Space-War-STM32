@@ -47,6 +47,8 @@ typedef struct {
 RTC_HandleTypeDef hrtc;
 
 /* USER CODE BEGIN PV */
+uint8_t shot_radius = 5;
+uint8_t airplane_radius = 10;
 uint8_t player_width = 15;
 uint8_t player_height = 30;
 uint8_t player_starting_position = 90;
@@ -76,6 +78,8 @@ void Make_The_Shot(void);
 void Update_Shots_Position(void);
 void Draw_Airplane(void);
 void Update_Airplanes_Position(void);
+void Detect_Colisions_With_Shots(void);
+void Detect_Colision_With_Player(void);
 
 void Draw_Player_Start_Position(void);
 void GameSetup(void);
@@ -179,6 +183,8 @@ int main(void)
 		    	Draw_Airplane();
 		    	Update_Shots_Position();
 		    	Update_Airplanes_Position();
+		    	Detect_Colision_With_Player();
+		    	Detect_Colisions_With_Shots();
 		    }
 
 		    JoyState = BSP_JOY_GetState();
@@ -458,6 +464,53 @@ void Move_Right()
 	}
 }
 
+void Detect_Colisions_With_Shots(void)
+{
+//	y_shot - radius < y_airplane + radius - wykrycie kolizji w Y
+//
+//	W Xie:
+//	Sprawdzamy czy ich środki znajdują się w odległości dwóch promieni lub mniej od siebie
+//
+//	0, 14 = -14
+//	19, 5 = 14
+//	14, 16  = -2
+//
+//	ABS(x_shot - x_airplane) < shot_radius + airplane_radius
+
+
+	for (uint16_t i = 0; i<40; i++)
+	{
+		if (Airplanes[i].x != 0 && Airplanes[i].y !=0 )
+		{
+			for (uint16_t j = 0; j<40; j++)
+			{
+				if (Shots[j].x != 0 && Shots[j].y !=0 )
+				{
+					if (Shots[j].y - shot_radius < Airplanes[i].y + airplane_radius)
+					{
+						if(abs(Shots[j].x-Airplanes[i].x) < shot_radius + airplane_radius)
+						{
+							score++;
+							Update_Score();
+
+							BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
+							BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
+							BSP_LCD_FillCircle(Shots[i].x, Shots[i].y, shot_radius);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+
+void Detect_Colision_With_Player(void)
+{
+ // kolizja w y - airplane.y+radius>(240-wysokosc gracza)
+ // kolizja w x - airplane.x-
+}
+
 void Draw_Airplane(void)
 {
 	if (Seconds_To_Next_Airplane >= 4)
@@ -465,7 +518,7 @@ void Draw_Airplane(void)
 		Airplanes[seconds%40].x = 10 + (rand() % 180);
 		Airplanes[seconds%40].y = 20;
 		BSP_LCD_SetTextColor(LCD_COLOR_RED);
-		BSP_LCD_FillCircle(Airplanes[seconds%40].x, Airplanes[seconds%40].y, 10);
+		BSP_LCD_FillCircle(Airplanes[seconds%40].x, Airplanes[seconds%40].y, airplane_radius);
 
 		Seconds_To_Next_Airplane = 0;
 	}
@@ -481,7 +534,7 @@ void Update_Airplanes_Position(void)
 				{
 					// USUWAMY SAMOLOCIK - ZBLIZYL SIE DO DOlNEJ KRAWEDZI
 					BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
-					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, 10);
+					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
 					Airplanes[i].x = 0;
 					Airplanes[i].y = 0;
 				}
@@ -489,11 +542,11 @@ void Update_Airplanes_Position(void)
 				{
 					// CZYSCIMY POPRZEDNIA POZYCJE
 					BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
-					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, 10);
+					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
 					// PRZESUWAMY POCISK DO GORY
 					Airplanes[i].y += 15;
 					BSP_LCD_SetTextColor(LCD_COLOR_RED);
-					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, 10);
+					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
 				}
 			}
 		}
@@ -509,7 +562,7 @@ void Make_The_Shot(void)
 
 		Shots[seconds%40].x = player_x_pos+(player_width/2);
 		Shots[seconds%40].y = 240-player_height-15;
-		BSP_LCD_FillCircle(Shots[seconds%40].x, Shots[seconds%40].y, 5);
+		BSP_LCD_FillCircle(Shots[seconds%40].x, Shots[seconds%40].y, shot_radius);
 	}
 }
 
@@ -523,7 +576,7 @@ void Update_Shots_Position(void)
 			{
 				// USUWAMY POCISK - ZBLIZYL SIE DO GORNEJ KRAWEDZI
 				BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
-				BSP_LCD_FillCircle(Shots[i].x, Shots[i].y, 5);
+				BSP_LCD_FillCircle(Shots[i].x, Shots[i].y, shot_radius);
 				Shots[i].x = 0;
 				Shots[i].y = 0;
 			}
@@ -531,11 +584,11 @@ void Update_Shots_Position(void)
 			{
 				// CZYSCIMY POPRZEDNIA POZYCJE
 				BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
-				BSP_LCD_FillCircle(Shots[i].x, Shots[i].y, 5);
+				BSP_LCD_FillCircle(Shots[i].x, Shots[i].y, shot_radius);
 				// PRZESUWAMY POCISK DO GORY
 				Shots[i].y -= 10;
 				BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-				BSP_LCD_FillCircle(Shots[i].x, Shots[i].y, 5);
+				BSP_LCD_FillCircle(Shots[i].x, Shots[i].y, shot_radius);
 			}
 		}
 	}
