@@ -60,6 +60,7 @@ uint8_t second_passed = 0;
 uint8_t score = 0;
 uint8_t lives = 3;
 uint8_t seconds = 0, minutes = 0, hours = 0;
+uint8_t level = 0;
 
 Coordinates Shots[40];
 Coordinates Airplanes[40];
@@ -80,12 +81,13 @@ void Draw_Airplane(void);
 void Update_Airplanes_Position(void);
 void Detect_Colisions_With_Shots(void);
 void Detect_Colision_With_Player(void);
-
+void Set_Airplane_Color(void);
 void Draw_Player_Start_Position(void);
 void GameSetup(void);
 void Update_Time(void);
 void Update_Score(void);
 void Update_Lives(void);
+void Update_Level(void);
 void Move_Left(void);
 void Move_Right(void);
 int8_t ADC1_Init(void);
@@ -359,6 +361,7 @@ void GameSetup(void)
 	BSP_LCD_DrawVLine(201, 240, 241);
     Update_Score();
     Update_Lives();
+    Update_Level();
     Draw_Player_Start_Position();
 }
 
@@ -421,6 +424,20 @@ void Update_Lives(void)
 	}
 	BSP_LCD_DisplayStringAt(85, 50, (uint8_t *)LivesResult, CENTER_MODE);
 }
+
+void Update_Level(void)
+{
+	uint8_t LevelResult[] = "Level: 00";
+	uint8_t i = 0;
+	while(level != 0)
+	{
+		LevelResult[8-i] = level%10+48;
+		level = level/10;
+		i++;
+	}
+	BSP_LCD_DisplayStringAt(85, 65, (uint8_t *)LevelResult, CENTER_MODE);
+}
+
 
 void Move_Left()
 {
@@ -491,6 +508,13 @@ void Detect_Colisions_With_Shots(void)
 						if(abs(Shots[j].x-Airplanes[i].x) < shot_radius + airplane_radius)
 						{
 							score++;
+
+							if (score % 10 == 0)
+							{
+								level++;
+							    Update_Level();
+							}
+
 							Update_Score();
 
 							BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
@@ -543,10 +567,34 @@ void Draw_Airplane(void)
 	{
 		Airplanes[seconds%40].x = 10 + (rand() % 180);
 		Airplanes[seconds%40].y = 20;
-		BSP_LCD_SetTextColor(LCD_COLOR_RED);
+		Set_Airplane_Color();
 		BSP_LCD_FillCircle(Airplanes[seconds%40].x, Airplanes[seconds%40].y, airplane_radius);
 
 		Seconds_To_Next_Airplane = 0;
+	}
+}
+
+void Set_Airplane_Color(void)
+{
+	if (level%5 == 0)
+	{
+		BSP_LCD_SetTextColor(LCD_COLOR_RED);
+	}
+	else if (level%5 == 1)
+	{
+		BSP_LCD_SetTextColor(LCD_COLOR_CYAN);
+	}
+	else if (level%5 == 2)
+	{
+		BSP_LCD_SetTextColor(LCD_COLOR_YELLOW);
+	}
+	else if (level%5 == 3)
+	{
+		BSP_LCD_SetTextColor(LCD_COLOR_GREEN);
+	}
+	else if (level%5 == 4)
+	{
+		BSP_LCD_SetTextColor(LCD_COLOR_ORANGE);
 	}
 }
 
@@ -571,7 +619,7 @@ void Update_Airplanes_Position(void)
 					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
 					// PRZESUWAMY POCISK DO GORY
 					Airplanes[i].y += 15;
-					BSP_LCD_SetTextColor(LCD_COLOR_RED);
+					Set_Airplane_Color();
 					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
 				}
 			}
