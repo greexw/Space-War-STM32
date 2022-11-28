@@ -64,6 +64,8 @@ uint8_t level = 0;
 
 Coordinates Shots[40];
 Coordinates Airplanes[40];
+uint8_t airplane_step = 10;
+uint8_t airplane_frequency = 5;
 // 0 - cant, 2 - can
 uint8_t Player_Can_Shoot = 0;
 uint8_t Seconds_To_Next_Airplane = 0;
@@ -512,6 +514,12 @@ void Detect_Colisions_With_Shots(void)
 							if (score % 10 == 0)
 							{
 								level++;
+								airplane_step++;
+
+								if (level%2 == 0 && airplane_frequency > 1)
+								{
+									airplane_frequency--;
+								}
 							    Update_Level();
 							}
 
@@ -563,7 +571,7 @@ void Detect_Colision_With_Player(void)
 
 void Draw_Airplane(void)
 {
-	if (Seconds_To_Next_Airplane >= 4)
+	if (Seconds_To_Next_Airplane >= airplane_frequency)
 	{
 		Airplanes[seconds%40].x = 10 + (rand() % 180);
 		Airplanes[seconds%40].y = 20;
@@ -617,8 +625,8 @@ void Update_Airplanes_Position(void)
 					// CZYSCIMY POPRZEDNIA POZYCJE
 					BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
 					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
-					// PRZESUWAMY POCISK DO GORY
-					Airplanes[i].y += 15;
+					// PRZESUWAMY SAMOLOT W DOL
+					Airplanes[i].y += airplane_step;
 					Set_Airplane_Color();
 					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
 				}
