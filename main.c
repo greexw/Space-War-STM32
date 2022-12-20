@@ -109,7 +109,9 @@ void Game_Over(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  JOYState_TypeDef JoyState = JOY_NONE;
+
+
+	JOYState_TypeDef JoyState = JOY_NONE;
   // uint8_t KeyState;
   /* USER CODE END 1 */
 
@@ -403,12 +405,15 @@ void Update_Time(void)
 
 void Update_Score(void)
 {
+	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+	BSP_LCD_SetFont(&Font12);
 	uint8_t Result[] = "Score: 00";
 	uint8_t i = 0;
-	while(score != 0)
+	uint8_t temp_score = score;
+	while(temp_score != 0)
 	{
-		Result[8-i] = score%10+48;
-		score = score/10;
+		Result[8-i] = temp_score%10+48;
+		temp_score = temp_score/10;
 		i++;
 	}
 	BSP_LCD_DisplayStringAt(85, 35, (uint8_t *)Result, CENTER_MODE);
@@ -416,12 +421,15 @@ void Update_Score(void)
 
 void Update_Lives(void)
 {
+	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+	BSP_LCD_SetFont(&Font12);
 	uint8_t LivesResult[] = "Lives: 00";
 	uint8_t i = 0;
-	while(lives != 0)
+	uint8_t temp_lives = lives;
+	while(temp_lives != 0)
 	{
-		LivesResult[8-i] = lives%10+48;
-		lives = lives/10;
+		LivesResult[8-i] = temp_lives%10+48;
+		temp_lives = temp_lives/10;
 		i++;
 	}
 	BSP_LCD_DisplayStringAt(85, 50, (uint8_t *)LivesResult, CENTER_MODE);
@@ -429,12 +437,15 @@ void Update_Lives(void)
 
 void Update_Level(void)
 {
+	BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
+	BSP_LCD_SetFont(&Font12);
 	uint8_t LevelResult[] = "Level: 00";
 	uint8_t i = 0;
-	while(level != 0)
+	uint8_t temp_level = level;
+	while(temp_level != 0)
 	{
-		LevelResult[8-i] = level%10+48;
-		level = level/10;
+		LevelResult[8-i] = temp_level%10+48;
+		temp_level = temp_level/10;
 		i++;
 	}
 	BSP_LCD_DisplayStringAt(85, 65, (uint8_t *)LevelResult, CENTER_MODE);
@@ -509,9 +520,9 @@ void Detect_Colisions_With_Shots(void)
 					{
 						if(abs(Shots[j].x-Airplanes[i].x) < shot_radius + airplane_radius)
 						{
-							score++;
-
-							if (score % 10 == 0)
+							score += 1;
+							Update_Score();
+							if (score % 2 == 0)
 							{
 								level++;
 								airplane_step++;
@@ -523,11 +534,15 @@ void Detect_Colisions_With_Shots(void)
 							    Update_Level();
 							}
 
-							Update_Score();
+
 
 							BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
 							BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
-							BSP_LCD_FillCircle(Shots[i].x, Shots[i].y, shot_radius);
+							BSP_LCD_FillCircle(Shots[j].x, Shots[j].y, shot_radius);
+							Airplanes[i].x = 0;
+							Airplanes[i].y = 0;
+							Shots[j].x = 0;
+							Shots[j].y = 0;
 						}
 					}
 				}
@@ -551,12 +566,15 @@ void Detect_Colision_With_Player(void)
 				if(abs(player_x_pos + player_width/2 - Airplanes[i].x) < player_width/2 + airplane_radius)
 				{
 					lives--;
-					if (lives < 0)
+					Update_Lives();
+					if (lives == 255)
 					{
 						game_status = 1;
 					}
 					BSP_LCD_SetTextColor(LCD_COLOR_LIGHTGRAY);
 					BSP_LCD_FillCircle(Airplanes[i].x, Airplanes[i].y, airplane_radius);
+					Airplanes[i].x = 0;
+					Airplanes[i].y = 0;
 
 					BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
 					BSP_LCD_DrawHLine(player_x_pos, 240-player_height, player_width);
@@ -688,7 +706,7 @@ void Draw_Player_Start_Position(void)
 
 void Game_Over(void)
 {
-	uint16_t score = 0;
+	BSP_LCD_SetFont(&Font12);
 	uint8_t Result[] = "You score 000 pts.";
 	uint8_t i = 0;
 	BSP_LCD_Clear(LCD_COLOR_LIGHTGRAY);
